@@ -1,1 +1,110 @@
 
+# CineAI: Multimodal Genre Prediction with Vision and NLP
+
+## Overview
+
+CineAI is a sophisticated machine learning project designed to classify movie genres using a combination of poster images and plot descriptions. Leveraging the power of multimodal data, this project employs a Siamese network architecture to judge the class similarity between pairs of movies based on their visual and textual features.
+
+## Project Structure
+
+- **Dataset**: The project uses a dataset consisting of movie poster images and corresponding plot descriptions.
+- **Multimodal Approach**: The model integrates Convolutional Neural Networks (CNN) for image processing and Long Short-Term Memory (LSTM) networks for text processing.
+- **Siamese Network**: A Siamese network structure is used to learn the similarity between pairs of movies.
+- **Training and Evaluation**: The model is trained to distinguish whether pairs of movies belong to the same genre or not.
+
+## Dataset
+
+- **Movie Poster Images**: Organized in folders named after their genres (e.g., Comedy, Horror, Romance, Action).
+- **Plot Descriptions**: Stored in a CSV file with movie IDs and corresponding descriptions.
+
+## Key Components
+
+### Data Loading and Preprocessing
+
+- **Image Loading**: Converts images to grayscale, resizes them, and normalizes the pixel values.
+- **Text Tokenization**: Tokenizes plot descriptions and pads sequences to ensure uniform length.
+
+### Model Architecture
+
+- **CNN Block**: Processes poster images to extract feature vectors.
+- **LSTM Block**: Processes plot descriptions to extract feature vectors.
+- **Siamese Network**: Combines image and text feature vectors to determine genre similarity.
+
+### Training and Evaluation
+
+- **Paired Dataset Creation**: Generates pairs of images and descriptions with corresponding labels indicating whether they belong to the same genre.
+- **Model Training**: Trains the Siamese network using paired data.
+- **Validation**: Evaluates the model performance on test data pairs.
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.7+
+- TensorFlow 2.x
+- NumPy
+- OpenCV
+- Matplotlib
+- Scikit-learn
+
+### Installation
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/CineAI.git
+    ```
+2. Navigate to the project directory:
+    ```bash
+    cd CineAI
+    ```
+3. Install the required packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### Running the Model
+
+1. Download and place the dataset in the appropriate directory.
+2. Run the Jupyter Notebook or Python script to train and evaluate the model.
+
+## Example Code
+
+### Data Loading and Preprocessing
+
+```python
+import os
+import cv2
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Define image size and other parameters
+IMAGE_SIZE = (84, 84)
+MAX_SEQUENCE_LENGTH = 375
+
+def load_data(data_dir):
+    images = []
+    labels = []
+    ids = []
+    for genre in os.listdir(data_dir):
+        genre_path = os.path.join(data_dir, genre)
+        for image_file in os.listdir(genre_path):
+            image_path = os.path.join(genre_path, image_file)
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            image = cv2.resize(image, IMAGE_SIZE)
+            images.append(image)
+            labels.append(genre)
+            ids.append(image_file.split('.')[0])
+    images = np.array(images)
+    images = images.reshape(-1, IMAGE_SIZE[0], IMAGE_SIZE[1], 1)  # Adjust for single channel
+    images = images / 255.0  # Normalize
+    return images, labels, ids
+
+def preprocess_text(texts):
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(texts)
+    sequences = tokenizer.texts_to_sequences(texts)
+    padded_sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH, padding='post')
+    return padded_sequences, tokenizer
