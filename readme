@@ -66,33 +66,44 @@ CineAI is a sophisticated machine learning project designed to classify movie ge
 1. Download and place the dataset in the appropriate directory.
 2. Run the Jupyter Notebook or Python script to train and evaluate the model.
 
-### Example
+## Example Code
+
+### Data Loading and Preprocessing
 
 ```python
-# Import necessary modules and define paths
 import os
 import cv2
 import numpy as np
-import tensorflow as tf
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # Define image size and other parameters
-image_size = (84, 84)
-max_sequence_length = 375
-embedding_dim = 200
+IMAGE_SIZE = (84, 84)
+MAX_SEQUENCE_LENGTH = 375
 
-# Load dataset and preprocess images and text
-data, labels, ids = load_data(data_dir)
-descriptions = [image_descriptions[id] for id in ids]
-tokenizer = Tokenizer()
-tokenizer.fit_on_texts(descriptions)
-padded_sequences = pad_sequences(tokenizer.texts_to_sequences(descriptions), maxlen=max_sequence_length, padding='post')
+def load_data(data_dir):
+    images = []
+    labels = []
+    ids = []
+    for genre in os.listdir(data_dir):
+        genre_path = os.path.join(data_dir, genre)
+        for image_file in os.listdir(genre_path):
+            image_path = os.path.join(genre_path, image_file)
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            image = cv2.resize(image, IMAGE_SIZE)
+            images.append(image)
+            labels.append(genre)
+            ids.append(image_file.split('.')[0])
+    images = np.array(images)
+    images = images.reshape(-1, IMAGE_SIZE[0], IMAGE_SIZE[1], 1)  # Adjust for single channel
+    images = images / 255.0  # Normalize
+    return images, labels, ids
 
-# Define and train the model
-model = define_model()
-model.fit(...)
-
-# Evaluate the model
-model.evaluate(...)
+def preprocess_text(texts):
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(texts)
+    sequences = tokenizer.texts_to_sequences(texts)
+    padded_sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH, padding='post')
+    return padded_sequences, tokenizer
